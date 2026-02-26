@@ -1,46 +1,42 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 
-interface User {
-  email: string;
-  name: string;
+export interface AuthUser {
+  uid: string;
+  email: string | null;
+  displayName: string | null;
 }
 
 interface AuthState {
-  user: User | null;
-  token: string | null;
+  user: AuthUser | null;
   isAuthenticated: boolean;
-  isLoading: boolean;
+  isLoading: boolean; // true while the first onAuthStateChanged fires
 }
 
 const initialState: AuthState = {
   user: null,
-  token: null,
   isAuthenticated: false,
-  isLoading: false,
+  isLoading: true, // start loading until Firebase resolves the session
 };
 
 const authSlice = createSlice({
   name: 'auth',
   initialState,
   reducers: {
-    loginSuccess: (state, action: PayloadAction<{ user: User; token: string }>) => {
-      state.user = action.payload.user;
-      state.token = action.payload.token;
+    setUser: (state, action: PayloadAction<AuthUser>) => {
+      state.user = action.payload;
       state.isAuthenticated = true;
       state.isLoading = false;
     },
-    logout: (state) => {
+    clearUser: (state) => {
       state.user = null;
-      state.token = null;
       state.isAuthenticated = false;
       state.isLoading = false;
     },
-    setLoading: (state, action: PayloadAction<boolean>) => {
+    setAuthLoading: (state, action: PayloadAction<boolean>) => {
       state.isLoading = action.payload;
     },
   },
 });
 
-export const { loginSuccess, logout, setLoading } = authSlice.actions;
-
+export const { setUser, clearUser, setAuthLoading } = authSlice.actions;
 export default authSlice.reducer;

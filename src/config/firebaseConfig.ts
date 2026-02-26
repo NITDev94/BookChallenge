@@ -1,7 +1,7 @@
-import auth from '@react-native-firebase/auth';
-import firestore from '@react-native-firebase/firestore';
-import functions from '@react-native-firebase/functions';
-import storage from '@react-native-firebase/storage';
+import { getAuth, connectAuthEmulator } from '@react-native-firebase/auth';
+import { getFirestore, connectFirestoreEmulator } from '@react-native-firebase/firestore';
+import { getFunctions, connectFunctionsEmulator } from '@react-native-firebase/functions';
+import { getStorage, connectStorageEmulator } from '@react-native-firebase/storage';
 import { Platform, NativeModules } from 'react-native';
 import DeviceInfo from 'react-native-device-info';
 
@@ -47,16 +47,20 @@ export const initializeFirebase = async () => {
       console.log(`🔌 Connecting to Firebase Emulators at ${emulatorHost}`);
 
       // Auth Emulator
-      auth().useEmulator(`http://${emulatorHost}:9099`);
+      const authInstance = getAuth();
+      connectAuthEmulator(authInstance, `http://${emulatorHost}:9099`);
 
       // Firestore Emulator
-      firestore().useEmulator(emulatorHost, 8080);
+      const firestoreInstance = getFirestore();
+      connectFirestoreEmulator(firestoreInstance, emulatorHost, 8080);
       
       // Functions Emulator
-      functions().useEmulator(emulatorHost, 5001);
+      const functionsInstance = getFunctions();
+      connectFunctionsEmulator(functionsInstance, emulatorHost, 5001);
 
       // Storage Emulator
-      storage().useEmulator(emulatorHost, 9199);
+      const storageInstance = getStorage();
+      connectStorageEmulator(storageInstance, emulatorHost, 9199);
       
       console.log('✅ Connected to Firebase Emulators');
     } catch (error) {
