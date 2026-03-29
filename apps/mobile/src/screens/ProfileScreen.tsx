@@ -1,10 +1,127 @@
-import React from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, Image, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Settings, LogOut, Award, Book, Calendar, ChevronRight } from 'lucide-react-native';
 import { getAuth, signOut } from '@react-native-firebase/auth';
+import { useSelector } from 'react-redux';
+import { RootState } from '../store';
+import { streamUserDocument, UserDocument } from '../services/userService';
+import { streamUserBooks, UserBookDocument } from '../services/userBookService';
+
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+const toUtcDateKey = (date: Date): string => {
+  const year = date.getUTCFullYear();
+  const month = String(date.getUTCMonth() + 1).padStart(2, '0');
+  const day = String(date.getUTCDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
+
+const getReadingStreak = (books: UserBookDocument[]): number => {
+  const uniqueDates = new Set<string>();
+
+  books.forEach((book) => {
+    (book.progressHistory || []).forEach((entry) => {
+      const parsedDate = new Date(entry.date);
+      if (!Number.isNaN(parsedDate.getTime())) {
+        uniqueDates.add(toUtcDateKey(parsedDate));
+      }
+    });
+  });
+
+  const sortedDates = Array.from(uniqueDates).sort((a, b) => b.localeCompare(a));
+  if (sortedDates.length === 0) {
+    return 0;
+  }
+
+  const todayKey = toUtcDateKey(new Date());
+  const latestActivityTime = Date.parse(`${sortedDates[0]}T00:00:00.000Z`);
+  const todayTime = Date.parse(`${todayKey}T00:00:00.000Z`);
+  const diffFromToday = Math.floor((todayTime - latestActivityTime) / DAY_MS);
+
+  // If no activity today or yesterday, current streak is considered broken.
+  if (diffFromToday > 1) {
+    return 0;
+  }
+
+  let streak = 1;
+  for (let i = 1; i < sortedDates.length; i += 1) {
+    const previousTime = Date.parse(`${sortedDates[i - 1]}T00:00:00.000Z`);
+    const currentTime = Date.parse(`${sortedDates[i]}T00:00:00.000Z`);
+    const diff = previousTime - currentTime;
+
+    if (diff === DAY_MS) {
+      streak += 1;
+    } else {
+      break;
+    }
+  }
+
+  return streak;
+};
+
+const getMemberSinceLabel = (createdAt: UserDocument['createdAt']): string => {
+  if (createdAt && typeof createdAt === 'object' && 'toDate' in createdAt && typeof createdAt.toDate === 'function') {
+    const year = createdAt.toDate().getFullYear();
+    return `Membre depuis ${year}`;
+  }
+
+  return 'Membre récemment';
+};
 
 export const ProfileScreen = () => {
+  const user = useSelector((state: RootState) => state.auth.user);
+
+  const [userDocument, setUserDocument] = useState<UserDocument | null>(null);
+  const [userBooks, setUserBooks] = useState<UserBookDocument[]>([]);
+  const [isUserDocumentLoading, setIsUserDocumentLoading] = useState(true);
+  const [isUserBooksLoading, setIsUserBooksLoading] = useState(true);
+
+  useEffect(() => {
+    if (!user) {
+      setUserDocument(null);
+      setUserBooks([]);
+      setIsUserDocumentLoading(false);
+      setIsUserBooksLoading(false);
+      return;
+    }
+
+    setIsUserDocumentLoading(true);
+    setIsUserBooksLoading(true);
+
+    const unsubscribeUserDocument = streamUserDocument(user.uid, (doc) => {
+      setUserDocument(doc);
+      setIsUserDocumentLoading(false);
+    });
+
+    const unsubscribeUserBooks = streamUserBooks(user.uid, (books) => {
+      setUserBooks(books);
+      setIsUserBooksLoading(false);
+    });
+
+    return () => {
+      unsubscribeUserDocument();
+      unsubscribeUserBooks();
+    };
+  }, [user]);
+
+  const isLoadingProfileData = !!user && (isUserDocumentLoading || isUserBooksLoading);
+
+  const displayName = (user?.displayName || userDocument?.displayName || 'Lecteur').trim();
+  const memberSince = getMemberSinceLabel(userDocument?.createdAt ?? null);
+  const avatarSeed = encodeURIComponent(displayName || user?.uid || 'reader');
+
+  const booksRead = useMemo(() => {
+    if (userBooks.length > 0) {
+      return userBooks.filter((book) => book.status === 'read').length;
+    }
+
+    return userDocument?.booksRead ?? 0;
+  }, [userBooks, userDocument?.booksRead]);
+
+  const challengesCount = userDocument?.currentChallenges?.length ?? 0;
+  const readingStreak = useMemo(() => getReadingStreak(userBooks), [userBooks]);
+
   const handleLogout = async () => {
     try {
       await signOut(getAuth());
@@ -26,12 +143,12 @@ export const ProfileScreen = () => {
         <View style={styles.profileSection}>
           <View style={styles.avatarContainer}>
             <Image
-              source={{ uri: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Alex' }}
+              source={{ uri: `https://api.dicebear.com/7.x/avataaars/svg?seed=${avatarSeed}` }}
               style={styles.avatar}
             />
           </View>
-          <Text style={styles.userName}>Alex Lecteur</Text>
-          <Text style={styles.memberSince}>Membre depuis 2023</Text>
+          <Text style={styles.userName}>{displayName}</Text>
+          <Text style={styles.memberSince}>{memberSince}</Text>
         </View>
 
         <View style={styles.statsGrid}>
@@ -39,7 +156,7 @@ export const ProfileScreen = () => {
             <View style={styles.iconContainer}>
               <Book size={20} color="#ea580c" />
             </View>
-            <Text style={styles.statValue}>42</Text>
+            <Text style={styles.statValue}>{isLoadingProfileData ? '...' : booksRead}</Text>
             <Text style={styles.statLabel}>Livres</Text>
           </View>
 
@@ -47,7 +164,7 @@ export const ProfileScreen = () => {
             <View style={styles.iconContainer}>
               <Award size={20} color="#2563eb" />
             </View>
-            <Text style={styles.statValue}>5</Text>
+            <Text style={styles.statValue}>{isLoadingProfileData ? '...' : challengesCount}</Text>
             <Text style={styles.statLabel}>Challenges</Text>
           </View>
 
@@ -55,7 +172,7 @@ export const ProfileScreen = () => {
             <View style={styles.iconContainer}>
               <Calendar size={20} color="#9333ea" />
             </View>
-            <Text style={styles.statValue}>12</Text>
+            <Text style={styles.statValue}>{isLoadingProfileData ? '...' : readingStreak}</Text>
             <Text style={styles.statLabel}>Jours (Série)</Text>
           </View>
         </View>
