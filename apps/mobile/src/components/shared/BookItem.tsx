@@ -43,7 +43,7 @@ export const BookItem: React.FC<BookProps> = ({ title, author, coverUrl, status,
         {progress ? (
           <View style={styles.progressContainer}>
             <View style={styles.progressTextRow}>
-              <Text style={styles.progressText}>{progress.current} pages lues / {progress.total}</Text>
+              <Text style={styles.progressText}>{progress.current} pages lues / {progress.total} pages</Text>
               <Text style={styles.percentageText}>{percentage}%</Text>
             </View>
             <ProgressBar progress={percentage} style={styles.progressBar} color="#f59e0b" />

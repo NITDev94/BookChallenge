@@ -4,6 +4,7 @@ import { getFunctions, connectFunctionsEmulator } from '@react-native-firebase/f
 import { getStorage, connectStorageEmulator } from '@react-native-firebase/storage';
 import { Platform, NativeModules } from 'react-native';
 import DeviceInfo from 'react-native-device-info';
+import { USE_FIREBASE_EMULATOR } from './firebaseEnv';
 
 /**
  * Get the IP address of the machine running the metro server.
@@ -41,28 +42,24 @@ const getEmulatorHost = async () => {
 };
 
 export const initializeFirebase = async () => {
-  if (__DEV__) {
+  if (USE_FIREBASE_EMULATOR) {
     try {
       const emulatorHost = await getEmulatorHost();
       console.log(`🔌 Connecting to Firebase Emulators at ${emulatorHost}`);
 
       // Auth Emulator
-      const authInstance = getAuth();
-      connectAuthEmulator(authInstance, `http://${emulatorHost}:9099`);
+      connectAuthEmulator(getAuth(), `http://${emulatorHost}:9099`);
 
       // Firestore Emulator
-      const firestoreInstance = getFirestore();
-      connectFirestoreEmulator(firestoreInstance, emulatorHost, 8080);
+      connectFirestoreEmulator(getFirestore(), emulatorHost, 8080);
       
       // Functions Emulator
-      const functionsInstance = getFunctions();
-      connectFunctionsEmulator(functionsInstance, emulatorHost, 5001);
+      connectFunctionsEmulator(getFunctions(), emulatorHost, 5001);
 
       // Storage Emulator
-      const storageInstance = getStorage();
-      connectStorageEmulator(storageInstance, emulatorHost, 9199);
+      connectStorageEmulator(getStorage(), emulatorHost, 9199);
       
-      console.log('✅ Connected to Firebase Emulators');
+      console.log('✅ Connected to Native Firebase Emulators (Modular)');
     } catch (error) {
       console.error('❌ Failed to connect to Firebase Emulators:', error);
     }

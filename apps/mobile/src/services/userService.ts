@@ -1,10 +1,16 @@
-import { getFirestore, doc, setDoc, serverTimestamp } from '@react-native-firebase/firestore';
+import { 
+  getFirestore, 
+  doc, 
+  setDoc,
+  serverTimestamp 
+} from '@react-native-firebase/firestore';
+import { FirebaseFirestoreTypes } from '@react-native-firebase/firestore';
 
 export interface UserDocument {
   uid: string;
   email: string | null;
   displayName: string | null;
-  createdAt: any; // Firestore ServerTimestamp
+  createdAt: FirebaseFirestoreTypes.FieldValue;
   booksRead: number;
   currentChallenges: string[];
   badges: string[];
@@ -12,7 +18,7 @@ export interface UserDocument {
 
 /**
  * Creates the user document in Firestore's `users` collection.
- * Called immediately after Firebase Auth account creation.
+ * Called immediately after Firebase Auth account creation (SignupScreen).
  *
  * @param uid - Firebase Auth UID
  * @param email - User email
@@ -23,10 +29,8 @@ export const createUserDocument = async (
   email: string | null,
   displayName: string | null,
 ): Promise<void> => {
-  console.log('📝 [userService] createUserDocument called', { uid, email, displayName });
-
-  const userRef = doc(getFirestore(), 'users', uid);
-  console.log('📝 [userService] Firestore ref path:', userRef.path);
+  const db = getFirestore();
+  const userRef = doc(db, 'users', uid);
 
   const userData: UserDocument = {
     uid,
@@ -40,9 +44,8 @@ export const createUserDocument = async (
 
   try {
     await setDoc(userRef, userData, { merge: true });
-    console.log('✅ [userService] User document written successfully!');
-  } catch (err) {
-    console.error('❌ [userService] setDoc FAILED:', err);
-    throw err; // re-throw so the caller can show an error
+  } catch (err: any) {
+    console.error('[userService] Failed to create user document:', err.code, err.message);
+    throw err;
   }
 };

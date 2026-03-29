@@ -24,7 +24,7 @@ const AppInner = () => {
       await initializeFirebase();
 
       // Listen to Firebase Auth state — fires immediately with current user
-      unsubscribe = onAuthStateChanged(getAuth(), firebaseUser => {
+      unsubscribe = onAuthStateChanged(getAuth(), async firebaseUser => {
         if (firebaseUser) {
           const user: AuthUser = {
             uid: firebaseUser.uid,

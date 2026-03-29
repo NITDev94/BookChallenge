@@ -3,10 +3,11 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { MainTabNavigator } from './MainTabNavigator';
 import { BookDetailScreen } from '../screens/BookDetailScreen';
 import { GoogleBookItem } from '../services/googleBooksService';
+import { PartialGoogleBook } from '../services/userBookService';
 
 export type AppStackParamList = {
   MainTabs: undefined;
-  BookDetail: { book: GoogleBookItem };
+  BookDetail: { book: GoogleBookItem | PartialGoogleBook };
 };
 
 const Stack = createNativeStackNavigator<AppStackParamList>();

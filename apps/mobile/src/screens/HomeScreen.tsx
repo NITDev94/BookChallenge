@@ -12,7 +12,6 @@ import { RewardCard } from '../components/home/RewardCard';
 export const HomeScreen = () => {
     const user = useSelector((state: RootState) => state.auth.user);
     const displayName = user?.displayName?.split(' ')[0] || 'Utilisateur';
-
     return (
         <SafeAreaView style={styles.safeArea}>
             <ScrollView style={styles.scrollView} contentContainerStyle={styles.contentContainer}>
@@ -32,6 +31,7 @@ export const HomeScreen = () => {
                             </View>
                         </View>
 
+                        {/* TODO: connect to real data — streak */}
                         <View style={styles.streakBadge}>
                             <Flame size={20} color="#f97316" fill="#f97316" />
                             <View style={styles.streakTextContainer}>
@@ -43,6 +43,7 @@ export const HomeScreen = () => {
                 </View>
 
                 {/* XP & Level Section */}
+                {/* TODO: connect to real data — XP, level, progress */}
                 <View style={styles.xpSection}>
                     <View style={styles.xpCard}>
                         <View style={styles.xpCardLeft}>
@@ -69,6 +70,7 @@ export const HomeScreen = () => {
                     <CurrentlyReading />
 
                     {/* Challenges en cours */}
+                    {/* TODO: connect to real data — active challenges */}
                     <View style={styles.section}>
                         <View style={styles.sectionHeader}>
                             <View style={styles.titleWithCount}>
@@ -106,6 +108,7 @@ export const HomeScreen = () => {
                     </View>
 
                     {/* Mes bonus */}
+                    {/* TODO: connect to real data — bonuses */}
                     <View style={styles.section}>
                         <Text style={styles.sectionTitle}>Mes bonus</Text>
                         <View style={styles.bonusGrid}>
@@ -131,6 +134,7 @@ export const HomeScreen = () => {
                     </View>
 
                     {/* Récompenses débloquées */}
+                    {/* TODO: connect to real data — unlocked rewards */}
                     <View style={styles.section}>
                         <View style={styles.sectionHeader}>
                             <View style={styles.titleWithCount}>

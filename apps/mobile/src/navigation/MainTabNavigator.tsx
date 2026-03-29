@@ -7,7 +7,14 @@ import { LibraryScreen } from '../screens/LibraryScreen';
 import { ProfileScreen } from '../screens/ProfileScreen';
 import { colors } from '../theme/colors';
 
-const Tab = createBottomTabNavigator();
+export type MainTabParamList = {
+  Home: undefined;
+  Explore: undefined;
+  Library: undefined;
+  Profile: undefined;
+};
+
+const Tab = createBottomTabNavigator<MainTabParamList>();
 
 export const MainTabNavigator = () => {
   return (

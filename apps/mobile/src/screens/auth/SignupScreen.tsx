@@ -9,11 +9,14 @@ import {
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import {
-  getAuth,
-  createUserWithEmailAndPassword,
-  updateProfile,
+import { useDispatch } from 'react-redux';
+import { 
+  getAuth, 
+  createUserWithEmailAndPassword, 
+  updateProfile, 
+  reload 
 } from '@react-native-firebase/auth';
+import { setUser, AuthUser } from '../../store/slices/authSlice';
 import { createUserDocument } from '../../services/userService';
 import { Button } from '../../components/ui/Button';
 import { TextInput } from '../../components/ui/TextInput';
@@ -40,6 +43,7 @@ const getFirebaseErrorMessage = (code: string): string => {
 
 export const SignupScreen = () => {
   const navigation = useNavigation<NavigationProp>();
+  const dispatch = useDispatch();
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -54,31 +58,41 @@ export const SignupScreen = () => {
     setError('');
     setLoading(true);
     try {
-      console.log('🔐 [Signup] Step 1: Creating Auth account...');
+      const authInstance = getAuth();
+
       // 1. Create the Firebase Auth account
       const credential = await createUserWithEmailAndPassword(
-        getAuth(),
+        authInstance,
         email.trim(),
         password,
       );
-      console.log('🔐 [Signup] Step 1 OK — uid:', credential.user.uid);
 
       // 2. Save the display name to the Auth profile
-      console.log('🔐 [Signup] Step 2: Updating profile displayName...');
       await updateProfile(credential.user, { displayName: username.trim() });
-      console.log('🔐 [Signup] Step 2 OK');
+      
+      // Reload user to ensure profile changes are reflected in the object
+      await reload(credential.user);
+      const updatedUser = authInstance.currentUser;
+
+      // Update Redux state immediately so Home screen has the name
+      if (updatedUser) {
+        const reduxUser: AuthUser = {
+          uid: updatedUser.uid,
+          email: updatedUser.email,
+          displayName: updatedUser.displayName,
+        };
+        dispatch(setUser(reduxUser));
+      }
 
       // 3. Create the user document in Firestore
-      console.log('🔐 [Signup] Step 3: Writing Firestore document...');
       await createUserDocument(
         credential.user.uid,
         email.trim(),
         username.trim(),
       );
-      console.log('🔐 [Signup] Step 3 OK — all done!');
-      // onAuthStateChanged in App.tsx will handle Redux update & navigation
+      // onAuthStateChanged in App.tsx will handle navigation
     } catch (e: any) {
-      console.error('🔐 [Signup] ERROR at step:', e.code, e.message, e);
+      console.error('[SignupScreen] Signup failed:', e.code, e.message);
       setError(getFirebaseErrorMessage(e.code));
     } finally {
       setLoading(false);

@@ -1,3 +1,4 @@
+# ─── Yarn ────────────────────────────────────────────────────────────────────
 .yarn/*
 !.yarn/patches
 !.yarn/plugins
@@ -5,6 +6,41 @@
 !.yarn/sdks
 !.yarn/versions
 .pnp.*
-node_modules
-.agents
-.vscode
+
+# ─── Dependencies ─────────────────────────────────────────────────────────────
+node_modules/
+
+# ─── Firebase Emulator ────────────────────────────────────────────────────────
+# Local emulator seed data – never commit, it's machine-specific dev state
+firebase/emulator-suite/
+
+# Firebase debug / runtime logs
+firebase-debug.log
+firebase-debug.log.*
+firestore-debug.log
+firestore-debug.log.*
+database-debug.log
+database-debug.log.*
+storage-debug.log
+storage-debug.log.*
+ui-debug.log
+ui-debug.log.*
+pubsub-debug.log
+pubsub-debug.log.*
+
+# ─── macOS ────────────────────────────────────────────────────────────────────
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# ─── IDE / Editor ─────────────────────────────────────────────────────────────
+.vscode/
+.agents/
+
+# ─── Misc ─────────────────────────────────────────────────────────────────────
+*.local
+
+# ─── Env files ────────────────────────────────────────────────────────────────
+.env
+.env.*
+!.env.example
