@@ -1,7 +1,9 @@
 import React from 'react';
-import { View, Text, Image, StyleSheet, ViewStyle } from 'react-native';
+import { View, Text, Image, StyleSheet } from 'react-native';
 import { Trophy, Sparkles } from 'lucide-react-native';
 import { ProgressBar } from '../shared/ProgressBar';
+import { GlassCard } from '../shared/GlassCard';
+import { commonStyles } from '../../theme';
 
 interface ChallengeProps {
   title: string;
@@ -20,16 +22,17 @@ export const ChallengeCard: React.FC<ChallengeProps> = ({
   deadline,
   imageUrl,
   theme = 'light',
-  xp
+  xp,
 }) => {
   const percentage = Math.round((current / target) * 100);
   const isDark = theme === 'dark';
 
   return (
-    <View style={[
-      styles.container,
-      isDark ? styles.containerDark : styles.containerLight
-    ]}>
+    <GlassCard
+      variant={isDark ? 'dark' : 'amber'}
+      shadowPreset={isDark ? 'dark' : 'card'}
+      style={styles.card}
+    >
       {imageUrl && (
         <Image
           source={{ uri: imageUrl }}
@@ -53,7 +56,10 @@ export const ChallengeCard: React.FC<ChallengeProps> = ({
         </View>
 
         <View>
-          <Text style={[styles.title, isDark ? styles.titleDark : styles.titleLight]} numberOfLines={2}>
+          <Text
+            style={[styles.title, isDark ? styles.titleDark : styles.titleLight]}
+            numberOfLines={2}
+          >
             {title}
           </Text>
           <Text style={[styles.subtitle, isDark ? styles.subtitleDark : styles.subtitleLight]}>
@@ -75,9 +81,9 @@ export const ChallengeCard: React.FC<ChallengeProps> = ({
 
           {xp && (
             <View style={styles.xpRow}>
-              <View style={[styles.xpBadge, isDark ? styles.xpBadgeDark : styles.xpBadgeLight]}>
+              <View style={[commonStyles.xpBadge, isDark && styles.xpBadgeDark]}>
                 <Sparkles size={10} color="#f59e0b" fill="#f59e0b" />
-                <Text style={[styles.xpText, isDark ? styles.xpTextDark : styles.xpTextLight]}>
+                <Text style={[commonStyles.xpText, isDark && styles.xpTextDark]}>
                   +{xp} XP
                 </Text>
               </View>
@@ -85,27 +91,16 @@ export const ChallengeCard: React.FC<ChallengeProps> = ({
           )}
         </View>
       </View>
-    </View>
+    </GlassCard>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
-    borderRadius: 16,
-    borderWidth: 1,
+  card: {
     padding: 12,
     height: 160,
     justifyContent: 'space-between',
-    overflow: 'hidden',
     position: 'relative',
-  },
-  containerLight: {
-    backgroundColor: '#ffffff',
-    borderColor: '#f5f5f4',
-  },
-  containerDark: {
-    backgroundColor: '#0f172a', // slate-900
-    borderColor: '#1e293b',
   },
   backgroundImage: {
     ...StyleSheet.absoluteFillObject,
@@ -122,7 +117,7 @@ const styles = StyleSheet.create({
   },
   trophyContainer: {
     padding: 6,
-    backgroundColor: '#fef3c7', // amber-100
+    backgroundColor: '#fef3c7',
     borderRadius: 8,
   },
   deadlineBadge: {
@@ -131,10 +126,10 @@ const styles = StyleSheet.create({
     borderRadius: 999,
   },
   deadlineBadgeLight: {
-    backgroundColor: '#f5f5f4', // stone-100
+    backgroundColor: 'rgba(245, 245, 244, 0.7)',
   },
   deadlineBadgeDark: {
-    backgroundColor: '#1e293b',
+    backgroundColor: 'rgba(30, 41, 59, 0.6)',
   },
   deadlineText: {
     fontSize: 10,
@@ -196,29 +191,10 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
     marginTop: 8,
   },
-  xpBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    borderRadius: 999,
-    borderWidth: 1,
-    gap: 4,
-  },
-  xpBadgeLight: {
-    backgroundColor: '#fffbeb',
-    borderColor: '#fef3c7',
-  },
+  // Dark overrides for the xpBadge from commonStyles
   xpBadgeDark: {
     backgroundColor: 'rgba(120, 53, 15, 0.3)',
     borderColor: 'rgba(120, 53, 15, 0.5)',
-  },
-  xpText: {
-    fontSize: 10,
-    fontWeight: '700',
-  },
-  xpTextLight: {
-    color: '#b45309',
   },
   xpTextDark: {
     color: '#fbbf24',

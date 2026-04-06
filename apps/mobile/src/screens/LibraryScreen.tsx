@@ -17,6 +17,7 @@ import { AppStackParamList } from '../navigation/AppNavigator';
 import { useSelector } from 'react-redux';
 import { RootState } from '../store';
 import { streamUserBooks, UserBookDocument, userBookToPartialGoogleBook } from '../services/userBookService';
+import { shadows } from '../theme';
 
 type NavigationProp = NativeStackNavigationProp<AppStackParamList, 'MainTabs'>;
 
@@ -299,11 +300,7 @@ const styles = StyleSheet.create({
   },
   filterButtonActive: {
     backgroundColor: '#ffffff',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-    elevation: 2,
+    ...shadows.sm,
   },
   filterText: {
     fontSize: 13,
