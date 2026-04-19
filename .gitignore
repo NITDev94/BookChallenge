@@ -12,21 +12,14 @@ node_modules/
 
 # ─── Firebase Emulator ────────────────────────────────────────────────────────
 # Local emulator seed data – never commit, it's machine-specific dev state
-firebase/emulator-suite/
+firebase/suite/
 
 # Firebase debug / runtime logs
-firebase-debug.log
-firebase-debug.log.*
-firestore-debug.log
-firestore-debug.log.*
-database-debug.log
-database-debug.log.*
-storage-debug.log
-storage-debug.log.*
-ui-debug.log
-ui-debug.log.*
-pubsub-debug.log
-pubsub-debug.log.*
+*-debug.log*
+
+# ─── Firebase Functions ───────────────────────────────────────────────────────
+# Artifacts from TypeScript compilation
+firebase/functions/lib/
 
 # ─── macOS ────────────────────────────────────────────────────────────────────
 .DS_Store
@@ -36,9 +29,12 @@ pubsub-debug.log.*
 # ─── IDE / Editor ─────────────────────────────────────────────────────────────
 .vscode/
 .agents/
+.idea/
 
 # ─── Misc ─────────────────────────────────────────────────────────────────────
 *.local
+*.log
+.expo/
 
 # ─── Env files ────────────────────────────────────────────────────────────────
 .env
