@@ -56,6 +56,9 @@ yarn-error.log
 # Bundle artifact
 *.jsbundle
 
+# Assets copied from node_modules (Internal React Native build assets)
+ios/assets/__node_modules/
+
 # Ruby / CocoaPods
 **/Pods/
 /vendor/bundle/

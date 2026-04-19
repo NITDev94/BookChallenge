@@ -26,6 +26,10 @@ firebase/functions/lib/
 .AppleDouble
 .LSOverride
 
+# ─── Ruby / Bundler ───────────────────────────────────────────────────────────
+.bundle/
+vendor/bundle/
+
 # ─── IDE / Editor ─────────────────────────────────────────────────────────────
 .vscode/
 .agents/
