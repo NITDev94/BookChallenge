@@ -12,6 +12,7 @@ import { RootState } from '../store';
 import { getBookById, GoogleBookVolumeInfo } from '../services/googleBooksService';
 import { getUserBook, saveOrUpdateUserBook, UserBookDocument } from '../services/userBookService';
 import { ProgressBar } from '../components/shared/ProgressBar';
+import { toLocalDayKey, upsertProgressHistoryEntry } from '../utils/readingStreak';
 
 type BookDetailRouteProp = {
     key: string;
@@ -72,7 +73,7 @@ export const BookDetailScreen = () => {
             setIsLoading(false);
         };
         init();
-    }, [book.id, user]);
+    }, [book.id, user, volumeInfo?.description]);
 
     // Sync pages → percent
     const handlePagesChange = (val: string) => {
@@ -98,10 +99,14 @@ export const BookDetailScreen = () => {
         const total = totalPages || 1;
         const newPercentage = Math.min((currentPagesNumber / total) * 100, 100);
 
-        const historyEntry = { date: new Date().toISOString(), page: currentPagesNumber };
-        const updatedHistory = existingBook
-            ? [...(existingBook.progressHistory || []), historyEntry]
-            : [historyEntry];
+        const now = new Date();
+        const historyEntry = {
+            date: now.toISOString(),
+            page: currentPagesNumber,
+            localDayKey: toLocalDayKey(now),
+            timezoneOffsetMinutes: now.getTimezoneOffset(),
+        };
+        const updatedHistory = upsertProgressHistoryEntry(existingBook?.progressHistory || [], historyEntry);
 
         setIsSaving(true);
         const finalStatus = currentPagesNumber >= total ? 'read' : status;
@@ -112,6 +117,8 @@ export const BookDetailScreen = () => {
             title: volumeInfo.title,
             authors: volumeInfo.authors || [],
             thumbnailUrl: coverUrl,
+            language: richVolumeInfo?.language || volumeInfo?.language,
+            categories: richVolumeInfo?.categories || volumeInfo?.categories,
             status: finalStatus,
             currentPage: currentPagesNumber,
             totalPages: total,
@@ -140,6 +147,8 @@ export const BookDetailScreen = () => {
                 title: volumeInfo.title,
                 authors: volumeInfo.authors || [],
                 thumbnailUrl: coverUrl,
+                language: richVolumeInfo?.language || volumeInfo?.language,
+                categories: richVolumeInfo?.categories || volumeInfo?.categories,
                 status: newStatus,
                 currentPage: currentPages,
                 totalPages: total,
@@ -153,7 +162,7 @@ export const BookDetailScreen = () => {
 
     if (isLoading) {
         return (
-            <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
+            <View style={styles.loadingContainer}>
                 <ActivityIndicator size="large" color="#d97706" />
             </View>
         );
@@ -306,6 +315,12 @@ export const BookDetailScreen = () => {
 
 const styles = StyleSheet.create({
     container: { flex: 1, backgroundColor: '#ffffff' },
+    loadingContainer: {
+        flex: 1,
+        backgroundColor: '#ffffff',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
     contentContainer: { padding: 24, paddingBottom: 48 },
     header: { flexDirection: 'row', marginBottom: 24 },
     cover: { width: 100, height: 150, borderRadius: 10, backgroundColor: '#e7e5e4' },

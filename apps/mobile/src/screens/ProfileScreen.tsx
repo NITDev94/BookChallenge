@@ -6,59 +6,8 @@ import { getAuth, signOut } from '@react-native-firebase/auth';
 import { useSelector } from 'react-redux';
 import { RootState } from '../store';
 import { streamUserDocument, UserDocument } from '../services/userService';
-import { streamUserBooks, UserBookDocument } from '../services/userBookService';
-
-const DAY_MS = 24 * 60 * 60 * 1000;
-
-const toUtcDateKey = (date: Date): string => {
-  const year = date.getUTCFullYear();
-  const month = String(date.getUTCMonth() + 1).padStart(2, '0');
-  const day = String(date.getUTCDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
-};
-
-const getReadingStreak = (books: UserBookDocument[]): number => {
-  const uniqueDates = new Set<string>();
-
-  books.forEach((book) => {
-    (book.progressHistory || []).forEach((entry) => {
-      const parsedDate = new Date(entry.date);
-      if (!Number.isNaN(parsedDate.getTime())) {
-        uniqueDates.add(toUtcDateKey(parsedDate));
-      }
-    });
-  });
-
-  const sortedDates = Array.from(uniqueDates).sort((a, b) => b.localeCompare(a));
-  if (sortedDates.length === 0) {
-    return 0;
-  }
-
-  const todayKey = toUtcDateKey(new Date());
-  const latestActivityTime = Date.parse(`${sortedDates[0]}T00:00:00.000Z`);
-  const todayTime = Date.parse(`${todayKey}T00:00:00.000Z`);
-  const diffFromToday = Math.floor((todayTime - latestActivityTime) / DAY_MS);
-
-  // If no activity today or yesterday, current streak is considered broken.
-  if (diffFromToday > 1) {
-    return 0;
-  }
-
-  let streak = 1;
-  for (let i = 1; i < sortedDates.length; i += 1) {
-    const previousTime = Date.parse(`${sortedDates[i - 1]}T00:00:00.000Z`);
-    const currentTime = Date.parse(`${sortedDates[i]}T00:00:00.000Z`);
-    const diff = previousTime - currentTime;
-
-    if (diff === DAY_MS) {
-      streak += 1;
-    } else {
-      break;
-    }
-  }
-
-  return streak;
-};
+import { useReadingStreak } from '../hooks/useReadingStreak';
+import { useChallenges } from '../hooks/useChallenges';
 
 const getMemberSinceLabel = (createdAt: UserDocument['createdAt']): string => {
   if (createdAt && typeof createdAt === 'object' && 'toDate' in createdAt && typeof createdAt.toDate === 'function') {
@@ -73,39 +22,41 @@ export const ProfileScreen = () => {
   const user = useSelector((state: RootState) => state.auth.user);
 
   const [userDocument, setUserDocument] = useState<UserDocument | null>(null);
-  const [userBooks, setUserBooks] = useState<UserBookDocument[]>([]);
   const [isUserDocumentLoading, setIsUserDocumentLoading] = useState(true);
-  const [isUserBooksLoading, setIsUserBooksLoading] = useState(true);
+  const {
+    userBooks,
+    readingStreak,
+    weekTimeline,
+    availableJokers,
+    usedJokerInCurrentStreak,
+    lastProtectedDayKey,
+    isLoading: isUserBooksLoading,
+  } = useReadingStreak(user?.uid);
+  const {
+    instances,
+    isLoading: isChallengesLoading,
+  } = useChallenges(user?.uid);
 
   useEffect(() => {
     if (!user) {
       setUserDocument(null);
-      setUserBooks([]);
       setIsUserDocumentLoading(false);
-      setIsUserBooksLoading(false);
       return;
     }
 
     setIsUserDocumentLoading(true);
-    setIsUserBooksLoading(true);
 
     const unsubscribeUserDocument = streamUserDocument(user.uid, (doc) => {
       setUserDocument(doc);
       setIsUserDocumentLoading(false);
     });
 
-    const unsubscribeUserBooks = streamUserBooks(user.uid, (books) => {
-      setUserBooks(books);
-      setIsUserBooksLoading(false);
-    });
-
     return () => {
       unsubscribeUserDocument();
-      unsubscribeUserBooks();
     };
   }, [user]);
 
-  const isLoadingProfileData = !!user && (isUserDocumentLoading || isUserBooksLoading);
+  const isLoadingProfileData = !!user && (isUserDocumentLoading || isUserBooksLoading || isChallengesLoading);
 
   const displayName = (user?.displayName || userDocument?.displayName || 'Lecteur').trim();
   const memberSince = getMemberSinceLabel(userDocument?.createdAt ?? null);
@@ -119,8 +70,11 @@ export const ProfileScreen = () => {
     return userDocument?.booksRead ?? 0;
   }, [userBooks, userDocument?.booksRead]);
 
-  const challengesCount = userDocument?.currentChallenges?.length ?? 0;
-  const readingStreak = useMemo(() => getReadingStreak(userBooks), [userBooks]);
+  const completedChallengesCount = useMemo(() => {
+    return instances.filter(
+      (instance) => instance.status === 'completed' || instance.status === 'claimed'
+    ).length;
+  }, [instances]);
 
   const handleLogout = async () => {
     try {
@@ -164,7 +118,7 @@ export const ProfileScreen = () => {
             <View style={styles.iconContainer}>
               <Award size={20} color="#2563eb" />
             </View>
-            <Text style={styles.statValue}>{isLoadingProfileData ? '...' : challengesCount}</Text>
+            <Text style={styles.statValue}>{isLoadingProfileData ? '...' : completedChallengesCount}</Text>
             <Text style={styles.statLabel}>Challenges</Text>
           </View>
 
@@ -175,6 +129,45 @@ export const ProfileScreen = () => {
             <Text style={styles.statValue}>{isLoadingProfileData ? '...' : readingStreak}</Text>
             <Text style={styles.statLabel}>Jours (Série)</Text>
           </View>
+        </View>
+
+        <View style={styles.streakInsightsCard}>
+          <Text style={styles.streakInsightsTitle}>Suivi de la semaine</Text>
+          <View style={styles.weekTimelineRow}>
+            {weekTimeline.map((day) => {
+              const dotStyle = [
+                styles.weekDot,
+                day.status === 'read' && styles.weekDotRead,
+                day.status === 'protected' && styles.weekDotProtected,
+                day.isToday && styles.weekDotToday,
+              ];
+
+              return (
+                <View key={day.dayKey} style={styles.weekDayItem}>
+                  <Text style={styles.weekDayLabel}>{day.label}</Text>
+                  <View style={dotStyle}>
+                    <Text style={styles.weekDotText}>
+                      {day.status === 'protected' ? '🃏' : day.status === 'read' ? '✓' : ''}
+                    </Text>
+                  </View>
+                </View>
+              );
+            })}
+          </View>
+
+          <Text style={styles.jokerInventoryText}>
+            Jokers disponibles : {isLoadingProfileData ? '...' : availableJokers}
+          </Text>
+
+          {usedJokerInCurrentStreak && lastProtectedDayKey ? (
+            <Text style={styles.protectedHintText}>
+              Série protégée avec un joker le {lastProtectedDayKey}
+            </Text>
+          ) : (
+            <Text style={styles.protectedHintMuted}>
+              Aucun joker utilisé sur la série active.
+            </Text>
+          )}
         </View>
 
         <View style={styles.actions}>
@@ -301,6 +294,79 @@ const styles = StyleSheet.create({
     fontSize: 10,
     color: '#78716c',
     textAlign: 'center',
+  },
+  streakInsightsCard: {
+    marginBottom: 28,
+    backgroundColor: '#fffbeb',
+    borderColor: '#fde68a',
+    borderWidth: 1,
+    borderRadius: 16,
+    padding: 14,
+  },
+  streakInsightsTitle: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#78350f',
+    marginBottom: 12,
+  },
+  weekTimelineRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    gap: 6,
+    marginBottom: 12,
+  },
+  weekDayItem: {
+    alignItems: 'center',
+    flex: 1,
+  },
+  weekDayLabel: {
+    fontSize: 10,
+    fontWeight: '600',
+    color: '#78716c',
+    marginBottom: 6,
+  },
+  weekDot: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: '#f5f5f4',
+    borderWidth: 1,
+    borderColor: '#e7e5e4',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  weekDotRead: {
+    backgroundColor: '#dcfce7',
+    borderColor: '#86efac',
+  },
+  weekDotProtected: {
+    backgroundColor: '#fef3c7',
+    borderColor: '#fcd34d',
+  },
+  weekDotToday: {
+    borderColor: '#b45309',
+    borderWidth: 1.5,
+  },
+  weekDotText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#44403c',
+  },
+  jokerInventoryText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#92400e',
+    marginBottom: 4,
+  },
+  protectedHintText: {
+    fontSize: 11,
+    color: '#b45309',
+    fontWeight: '600',
+  },
+  protectedHintMuted: {
+    fontSize: 11,
+    color: '#a8a29e',
+    fontWeight: '500',
   },
   actions: {
     gap: 12,

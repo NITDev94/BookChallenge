@@ -2,18 +2,48 @@ import React from 'react';
 import { View, Text, StyleSheet, ScrollView, Image, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
+import { useNavigation } from '@react-navigation/native';
+import { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
 import { RootState } from '../store';
-import { Flame, Sparkles, Calendar, Globe, Book, Coffee, ShoppingBag } from 'lucide-react-native';
+import { Flame, Sparkles, Calendar, Globe, Book } from 'lucide-react-native';
 import { CurrentlyReading } from '../components/home/CurrentlyReading';
-import { ChallengeCard } from '../components/home/ChallengeCard';
 import { BonusCard } from '../components/home/BonusCard';
-import { RewardCard } from '../components/home/RewardCard';
 import { GlassCard } from '../components/shared/GlassCard';
+import { useReadingStreak } from '../hooks/useReadingStreak';
+import { useChallenges } from '../hooks/useChallenges';
+import { ChallengeProgressCard } from '../components/challenges/ChallengeProgressCard';
+import { RewardUnlockCard } from '../components/challenges/RewardUnlockCard';
+import { MainTabParamList } from '../navigation/MainTabNavigator';
 import { commonStyles } from '../theme';
+import { StreakModal } from '../components/home/StreakModal';
+
+type HomeNavigationProp = BottomTabNavigationProp<MainTabParamList, 'Home'>;
 
 export const HomeScreen = () => {
+  const navigation = useNavigation<HomeNavigationProp>();
   const user = useSelector((state: RootState) => state.auth.user);
+  const {
+    readingStreak,
+    availableJokers,
+    weeklyJokerAvailable,
+    permanentJokers,
+    weekTimeline,
+    usedJokerInCurrentStreak,
+    isLoading: isReadingStreakLoading,
+  } = useReadingStreak(user?.uid);
+  const [isStreakModalVisible, setIsStreakModalVisible] = React.useState(false);
+  const {
+    activeChallenges,
+    rewards,
+    isLoading: isChallengesLoading,
+  } = useChallenges(user?.uid);
   const displayName = user?.displayName?.split(' ')[0] || 'Utilisateur';
+  const streakLabel = isReadingStreakLoading
+    ? '...'
+    : `${readingStreak} ${readingStreak === 1 ? 'Jour' : 'Jours'}`;
+  const jokersLabel = isReadingStreakLoading
+    ? '...'
+    : `${availableJokers} joker${availableJokers === 1 ? '' : 's'}`;
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -35,14 +65,19 @@ export const HomeScreen = () => {
               </View>
             </View>
 
-            {/* TODO: connect to real data — streak */}
-            <GlassCard variant="amber" shadowPreset="sm" borderRadius={24} style={styles.streakBadge}>
-              <Flame size={20} color="#f97316" fill="#f97316" />
-              <View style={styles.streakTextContainer}>
-                <Text style={styles.streakLabel}>SÉRIE</Text>
-                <Text style={styles.streakValue}>12 Jours</Text>
-              </View>
-            </GlassCard>
+            <TouchableOpacity onPress={() => setIsStreakModalVisible(true)} activeOpacity={0.7}>
+              <GlassCard variant="amber" shadowPreset="sm" borderRadius={24} style={styles.streakBadge}>
+                <Flame size={20} color="#f97316" fill="#f97316" />
+                <View style={styles.streakTextContainer}>
+                  <Text style={styles.streakLabel}>SÉRIE</Text>
+                  <Text style={styles.streakValue}>{streakLabel}</Text>
+                  <Text style={styles.streakMetaText}>🃏 {jokersLabel}</Text>
+                  {usedJokerInCurrentStreak && (
+                    <Text style={styles.streakProtectedText}>Série protégée</Text>
+                  )}
+                </View>
+              </GlassCard>
+            </TouchableOpacity>
           </View>
         </View>
 
@@ -76,41 +111,30 @@ export const HomeScreen = () => {
           <CurrentlyReading />
 
           {/* Challenges en cours */}
-          {/* TODO: connect to real data — active challenges */}
           <View style={styles.section}>
             <View style={commonStyles.sectionHeader}>
               <View style={styles.titleWithCount}>
                 <Text style={commonStyles.sectionTitle}>Challenges en cours</Text>
                 <View style={commonStyles.countBadge}>
-                  <Text style={commonStyles.countBadgeText}>3</Text>
+                  <Text style={commonStyles.countBadgeText}>{activeChallenges.length}</Text>
                 </View>
               </View>
-              <TouchableOpacity>
+              <TouchableOpacity onPress={() => navigation.navigate('Challenges')}>
                 <Text style={styles.seeAll}>Voir tout</Text>
               </TouchableOpacity>
             </View>
-            <View style={styles.grid}>
-              <View style={styles.gridCol}>
-                <ChallengeCard
-                  title="Objectif 2026"
-                  current={12}
-                  target={30}
-                  deadline="31 DÉC"
-                  imageUrl="https://images.unsplash.com/photo-1497633762265-9d179a990aa6?auto=format&fit=crop&q=80&w=1080"
-                  xp={500}
-                />
+
+            {isChallengesLoading ? (
+              <View style={styles.skeletonCard} />
+            ) : activeChallenges.length === 0 ? (
+              <Text style={styles.emptyText}>Aucun challenge actif pour le moment.</Text>
+            ) : (
+              <View style={styles.challengeList}>
+                {activeChallenges.slice(0, 2).map((item) => (
+                  <ChallengeProgressCard key={item.instance.id} item={item} />
+                ))}
               </View>
-              <View style={styles.gridCol}>
-                <ChallengeCard
-                  title="Objectif Février"
-                  current={3}
-                  target={5}
-                  deadline="28 FÉV"
-                  theme="dark"
-                  xp={150}
-                />
-              </View>
-            </View>
+            )}
           </View>
 
           {/* Mes bonus */}
@@ -140,36 +164,39 @@ export const HomeScreen = () => {
           </View>
 
           {/* Récompenses débloquées */}
-          {/* TODO: connect to real data — unlocked rewards */}
           <View style={styles.section}>
             <View style={commonStyles.sectionHeader}>
               <View style={styles.titleWithCount}>
                 <Text style={commonStyles.sectionTitle}>Récompenses débloquées</Text>
                 <View style={commonStyles.countBadge}>
-                  <Text style={commonStyles.countBadgeText}>2</Text>
+                  <Text style={commonStyles.countBadgeText}>{rewards.length}</Text>
                 </View>
               </View>
             </View>
-            <View style={styles.rewardList}>
-              <RewardCard
-                title="Chocolat chaud et lecture dans un café"
-                icon={Coffee}
-                color="#fff7ed"
-                iconColor="#ea580c"
-                xp={150}
-              />
-              <RewardCard
-                title="Achat d'un livre poche"
-                icon={ShoppingBag}
-                color="#fff1f2"
-                iconColor="#e11d48"
-                xp={300}
-              />
-            </View>
+            {isChallengesLoading ? (
+              <View style={styles.skeletonCard} />
+            ) : rewards.length === 0 ? (
+              <Text style={styles.emptyText}>Aucune récompense débloquée pour l’instant.</Text>
+            ) : (
+              <View style={styles.rewardList}>
+                {rewards.slice(0, 2).map((reward) => (
+                  <RewardUnlockCard key={reward.id} reward={reward} />
+                ))}
+              </View>
+            )}
           </View>
 
         </View>
       </ScrollView>
+
+      <StreakModal
+        isVisible={isStreakModalVisible}
+        onClose={() => setIsStreakModalVisible(false)}
+        readingStreak={readingStreak}
+        weeklyJokerAvailable={weeklyJokerAvailable}
+        permanentJokers={permanentJokers}
+        weekTimeline={weekTimeline}
+      />
     </SafeAreaView>
   );
 };
@@ -251,6 +278,18 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '700',
     color: '#1c1917',
+  },
+  streakMetaText: {
+    marginTop: 2,
+    fontSize: 10,
+    fontWeight: '600',
+    color: '#92400e',
+  },
+  streakProtectedText: {
+    marginTop: 1,
+    fontSize: 9,
+    fontWeight: '700',
+    color: '#b45309',
   },
 
   // ── XP Card (now a GlassCard with dark variant) ────────────────────────
@@ -334,6 +373,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: 16,
   },
+  challengeList: {
+    gap: 10,
+  },
   gridCol: {
     flex: 1,
   },
@@ -344,5 +386,14 @@ const styles = StyleSheet.create({
   },
   rewardList: {
     gap: 12,
+  },
+  skeletonCard: {
+    height: 96,
+    borderRadius: 12,
+    backgroundColor: '#f5f5f4',
+  },
+  emptyText: {
+    fontSize: 12,
+    color: '#78716c',
   },
 });

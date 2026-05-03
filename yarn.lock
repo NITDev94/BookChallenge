@@ -1512,6 +1512,7 @@ __metadata:
     "@react-native-firebase/firestore": "npm:^23.8.6"
     "@react-native-firebase/functions": "npm:^23.8.6"
     "@react-native-firebase/storage": "npm:^23.8.6"
+    "@react-native-ml-kit/barcode-scanning": "npm:^2.0.0"
     "@react-native/babel-preset": "npm:0.83.1"
     "@react-native/eslint-config": "npm:0.83.1"
     "@react-native/metro-config": "npm:0.83.1"
@@ -1533,9 +1534,13 @@ __metadata:
     react-native-device-info: "npm:^15.0.1"
     react-native-dotenv: "npm:^3.4.11"
     react-native-make: "npm:^1.0.1"
+    react-native-nitro-image: "npm:^0.13.1"
+    react-native-nitro-modules: "npm:^0.35.4"
     react-native-safe-area-context: "npm:^5.6.2"
     react-native-screens: "npm:^4.23.0"
     react-native-svg: "npm:^15.15.3"
+    react-native-vision-camera: "npm:^5.0.1"
+    react-native-worklets-core: "npm:^1.6.3"
     react-redux: "npm:^9.2.0"
     react-test-renderer: "npm:19.2.0"
     typescript: "npm:^5.8.3"
@@ -3597,6 +3602,16 @@ __metadata:
   peerDependencies:
     "@react-native-firebase/app": 23.8.6
   checksum: 10c0/165184622f36f4a63948a047d674390ae71f5714753ea0d0ec589bb1ec641d0b9bd7f2fbffad4c61243dd611179e50d5ab4d93f5370e8d94bf9ca8f00bd84682
+  languageName: node
+  linkType: hard
+
+"@react-native-ml-kit/barcode-scanning@npm:^2.0.0":
+  version: 2.0.0
+  resolution: "@react-native-ml-kit/barcode-scanning@npm:2.0.0"
+  peerDependencies:
+    react: ">=16.8.1"
+    react-native: ">=0.60.0-rc.0 <1.0.x"
+  checksum: 10c0/ded2407edff0241dd1cfdc5e9b7c5a9d96d903cef75722292be426e886b7eb53c9c1236efef9029c3672c28c95d5090954e1147c6863e570a67d2bde1ff551aa
   languageName: node
   linkType: hard
 
@@ -12887,6 +12902,27 @@ __metadata:
   languageName: node
   linkType: hard
 
+"react-native-nitro-image@npm:^0.13.1":
+  version: 0.13.1
+  resolution: "react-native-nitro-image@npm:0.13.1"
+  peerDependencies:
+    react: "*"
+    react-native: "*"
+    react-native-nitro-modules: "*"
+  checksum: 10c0/cbbc736b89249aeb2edc59ec928adb6becf5b9efd056e4de10ea6f3277365a889bfdb32a52cdc19bbfca4edaacdc47e7fa8a15209de8c24ae49c557f5b1b500b
+  languageName: node
+  linkType: hard
+
+"react-native-nitro-modules@npm:^0.35.4":
+  version: 0.35.4
+  resolution: "react-native-nitro-modules@npm:0.35.4"
+  peerDependencies:
+    react: "*"
+    react-native: "*"
+  checksum: 10c0/dffb64c1b349d21feb8a33546cde48e3c5d92e04e120f733c178d4afa26ef6de652c6236a4eed0da7ca842ac9815afaa0708f57ae1454d881397e5d0575031c2
+  languageName: node
+  linkType: hard
+
 "react-native-safe-area-context@npm:^5.6.2":
   version: 5.7.0
   resolution: "react-native-safe-area-context@npm:5.7.0"
@@ -12932,6 +12968,30 @@ __metadata:
   peerDependencies:
     react-native: "*"
   checksum: 10c0/a1e539c2a28dc48125ada8bf29f3536ee2c149e4a5e3d205858755783afafe7f871ce1de8b66cb1c4cc05e15e212c74c49e93ddde856cda63fcf660cf943522a
+  languageName: node
+  linkType: hard
+
+"react-native-vision-camera@npm:^5.0.1":
+  version: 5.0.1
+  resolution: "react-native-vision-camera@npm:5.0.1"
+  peerDependencies:
+    react: "*"
+    react-native: "*"
+    react-native-nitro-image: "*"
+    react-native-nitro-modules: "*"
+  checksum: 10c0/8c53234bf46d84fa5100ec69316a0f8a5eddc9a497c326917a392ed665be77c869e0cd68c1341f85fe1a7b2037239f42f619f2ef823d65f478c66c77a66cca1f
+  languageName: node
+  linkType: hard
+
+"react-native-worklets-core@npm:^1.6.3":
+  version: 1.6.3
+  resolution: "react-native-worklets-core@npm:1.6.3"
+  dependencies:
+    string-hash-64: "npm:^1.0.3"
+  peerDependencies:
+    react: "*"
+    react-native: "*"
+  checksum: 10c0/712011f611cca7e982e1d776d8219b03092ea0bfe468d77da1d03b2c5513eb545ad004b550f88deee2c1e325a902c5a5117c325e6a5827bbbb659b012ced6011
   languageName: node
   linkType: hard
 
@@ -14079,6 +14139,13 @@ __metadata:
   version: 2.0.0
   resolution: "strict-uri-encode@npm:2.0.0"
   checksum: 10c0/010cbc78da0e2cf833b0f5dc769e21ae74cdc5d5f5bd555f14a4a4876c8ad2c85ab8b5bdf9a722dc71a11dcd3184085e1c3c0bd50ec6bb85fffc0f28cf82597d
+  languageName: node
+  linkType: hard
+
+"string-hash-64@npm:^1.0.3":
+  version: 1.0.3
+  resolution: "string-hash-64@npm:1.0.3"
+  checksum: 10c0/ac175f71b383af1487ab16b4cc1b42b5302bea08bdf1cc1ea04bacb293fb9b35afc6c58260e1fc728627e7265519da01976822a188d493d7e7625b9628173ea3
   languageName: node
   linkType: hard
 

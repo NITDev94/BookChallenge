@@ -25,8 +25,8 @@
     "functions:watch": "yarn functions build:watch",
     "functions:shell": "yarn functions shell",
     "functions:deploy": "cd firebase && firebase deploy --only functions",
-    "emulators": "cd firebase && PATH=\"/opt/homebrew/opt/openjdk@21/libexec/openjdk.jdk/Contents/Home/bin:$PATH\" JAVA_HOME=\"/opt/homebrew/opt/openjdk@21/libexec/openjdk.jdk/Contents/Home\" firebase emulators:start --import=./emulator-suite --export-on-exit=./emulator-suite",
-    "emulators:export": "cd firebase && PATH=\"/opt/homebrew/opt/openjdk@21/libexec/openjdk.jdk/Contents/Home/bin:$PATH\" JAVA_HOME=\"/opt/homebrew/opt/openjdk@21/libexec/openjdk.jdk/Contents/Home\" firebase emulators:export ./emulator-suite",
+    "emulators": "cd firebase && PATH=\"/opt/homebrew/opt/openjdk@21/libexec/openjdk.jdk/Contents/Home/bin:$PATH\" JAVA_HOME=\"/opt/homebrew/opt/openjdk@21/libexec/openjdk.jdk/Contents/Home\" firebase emulators:start --import=./suite --export-on-exit=./suite",
+    "emulators:export": "cd firebase && PATH=\"/opt/homebrew/opt/openjdk@21/libexec/openjdk.jdk/Contents/Home/bin:$PATH\" JAVA_HOME=\"/opt/homebrew/opt/openjdk@21/libexec/openjdk.jdk/Contents/Home\" firebase emulators:export ./suite",
     "clean": "rm -rf node_modules apps/mobile/node_modules apps/mobile/ios/Pods apps/mobile/ios/build && yarn cache clean"
   },
   "packageManager": "yarn@4.12.0",

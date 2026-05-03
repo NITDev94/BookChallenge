@@ -2,14 +2,13 @@ import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Home, Compass, BookOpen, User } from 'lucide-react-native';
 import { HomeScreen } from '../screens/HomeScreen';
-import { ExploreScreen } from '../screens/ExploreScreen';
+import { ChallengesScreen } from '../screens/ChallengesScreen';
 import { LibraryScreen } from '../screens/LibraryScreen';
 import { ProfileScreen } from '../screens/ProfileScreen';
-import { colors } from '../theme/colors';
 
 export type MainTabParamList = {
   Home: undefined;
-  Explore: undefined;
+  Challenges: undefined;
   Library: undefined;
   Profile: undefined;
 };
@@ -24,7 +23,7 @@ export const MainTabNavigator = () => {
         tabBarIcon: ({ focused, color, size }) => {
           if (route.name === 'Home') {
             return <Home size={size} color={color} strokeWidth={focused ? 2.5 : 2} />;
-          } else if (route.name === 'Explore') {
+          } else if (route.name === 'Challenges') {
             return <Compass size={size} color={color} strokeWidth={focused ? 2.5 : 2} />;
           } else if (route.name === 'Library') {
             return <BookOpen size={size} color={color} strokeWidth={focused ? 2.5 : 2} />;
@@ -54,9 +53,9 @@ export const MainTabNavigator = () => {
         options={{ tabBarLabel: 'Accueil' }}
       />
       <Tab.Screen
-        name="Explore"
-        component={ExploreScreen}
-        options={{ tabBarLabel: 'Explorer' }}
+        name="Challenges"
+        component={ChallengesScreen}
+        options={{ tabBarLabel: 'Challenges' }}
       />
       <Tab.Screen
         name="Library"

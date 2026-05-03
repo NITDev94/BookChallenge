@@ -15,6 +15,8 @@ import {
 export interface ProgressHistoryEntry {
     date: string;
     page: number;
+    localDayKey?: string;
+    timezoneOffsetMinutes?: number;
 }
 
 export interface UserBookDocument {
@@ -24,6 +26,8 @@ export interface UserBookDocument {
     title: string;
     authors: string[];
     thumbnailUrl?: string;
+    language?: string;
+    categories?: string[];
     status: 'none' | 'want-to-read' | 'reading' | 'read';
     currentPage: number;
     totalPages: number;
@@ -43,6 +47,8 @@ export interface PartialGoogleBook {
     volumeInfo: {
         title: string;
         authors: string[];
+        language?: string;
+        categories?: string[];
         imageLinks?: { thumbnail?: string };
         pageCount?: number;
         description?: string;
@@ -58,6 +64,8 @@ export const userBookToPartialGoogleBook = (book: UserBookDocument): PartialGoog
     volumeInfo: {
         title: book.title,
         authors: book.authors,
+        language: book.language,
+        categories: book.categories,
         imageLinks: book.thumbnailUrl ? { thumbnail: book.thumbnailUrl } : undefined,
         pageCount: book.totalPages,
         // description intentionally omitted — BookDetailScreen will fetch it
@@ -124,10 +132,36 @@ export const saveOrUpdateUserBook = async (
 
         const snapshot = await getDoc(docRef);
 
+        const normalizedThumbnailUrl = typeof bookDetails.thumbnailUrl === 'string' && bookDetails.thumbnailUrl.trim().length > 0
+            ? bookDetails.thumbnailUrl
+            : null;
+
+        const normalizedLanguage = typeof bookDetails.language === 'string' && bookDetails.language.trim().length > 0
+            ? bookDetails.language.trim().toLowerCase()
+            : null;
+
+        const normalizedCategories = Array.isArray(bookDetails.categories)
+            ? Array.from(new Set(
+                bookDetails.categories
+                    .filter((category): category is string => typeof category === 'string' && category.trim().length > 0)
+                    .map((category) => category.trim())
+            ))
+            : [];
+
         const dataToSave = {
-            ...bookDetails,
+            bookId: bookDetails.bookId,
+            title: bookDetails.title,
+            authors: bookDetails.authors,
+            status: bookDetails.status,
+            currentPage: bookDetails.currentPage,
+            totalPages: bookDetails.totalPages,
+            percentage: bookDetails.percentage,
+            progressHistory: bookDetails.progressHistory,
             userId,
             updatedAt: serverTimestamp(),
+            ...(normalizedThumbnailUrl ? { thumbnailUrl: normalizedThumbnailUrl } : {}),
+            ...(normalizedLanguage ? { language: normalizedLanguage } : {}),
+            ...(normalizedCategories.length > 0 ? { categories: normalizedCategories } : {}),
             ...(bookDetails.status === 'reading' && !snapshot.exists()
                 ? { startedAt: serverTimestamp() }
                 : {}),

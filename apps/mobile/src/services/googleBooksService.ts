@@ -73,6 +73,10 @@ export interface GoogleBookVolumeInfo {
   publisher?: string;
   publishedDate?: string;
   categories?: string[];
+  industryIdentifiers?: Array<{
+    type: 'ISBN_10' | 'ISBN_13' | 'OTHER';
+    identifier: string;
+  }>;
   averageRating?: number;
   ratingsCount?: number;
   language?: string;
@@ -198,7 +202,8 @@ export const searchBooks = async (
   }
 
   try {
-    const url = `${BASE_URL}/volumes?q=${encodeURIComponent(normalizedQuery)}&maxResults=20&fields=totalItems,items(id,volumeInfo(title,authors,imageLinks,pageCount,description))`;
+    const fields = 'totalItems,items(id,volumeInfo(title,authors,imageLinks,pageCount,description,language,categories,publisher,publishedDate,industryIdentifiers))';
+    const url = `${BASE_URL}/volumes?q=${encodeURIComponent(normalizedQuery)}&maxResults=20&fields=${fields}`;
     const response = await fetchWithRetry(url, 2, 2000, options.signal);
 
     if (!response.ok) {
@@ -267,6 +272,19 @@ export const getBookById = async (bookId: string): Promise<GoogleBookItem | null
     console.error('[GoogleBooks] Error fetching book by ID:', error);
     return null;
   }
+};
+
+/**
+ * Specifically search for a book by its ISBN (10 or 13).
+ */
+export const searchByIsbn = async (
+  isbn: string,
+  options: SearchBooksOptions = {},
+): Promise<GoogleBookItem[]> => {
+  const cleanIsbn = isbn.replace(/[-\s]/g, '');
+  if (!cleanIsbn) return [];
+  
+  return searchBooks(`isbn:${cleanIsbn}`, options);
 };
 
 /** Clear all caches (call on logout if needed). */
