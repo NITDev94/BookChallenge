@@ -4,8 +4,6 @@ import {
   Text,
   StyleSheet,
   TouchableOpacity,
-  ScrollView,
-  TouchableWithoutFeedback,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -15,6 +13,7 @@ import { TextInput } from '../../components/ui/TextInput';
 import { colors } from '../../theme/colors';
 import { typography } from '../../theme/typography';
 import { AuthStackParamList } from '../../navigation/AuthNavigator';
+import { AuthSheetLayout } from '../../components/auth/AuthSheetLayout';
 
 type NavigationProp = NativeStackNavigationProp<AuthStackParamList, 'Login'>;
 
@@ -30,7 +29,7 @@ const getFirebaseErrorMessage = (code: string): string => {
     case 'auth/too-many-requests':
       return 'Trop de tentatives. Réessaie plus tard.';
     case 'auth/network-request-failed':
-      return 'Problème de connexion réseau.';
+      return 'Problème de conexión réseau.';
     default:
       return 'Une erreur est survenue. Réessaie.';
   }
@@ -61,91 +60,57 @@ export const LoginScreen = () => {
   };
 
   return (
-    <TouchableWithoutFeedback onPress={() => navigation.goBack()}>
-      <View style={styles.overlay}>
-        <TouchableWithoutFeedback onPress={() => { }}>
-          <View style={styles.sheet}>
-            <View style={styles.handle} />
-
-            <ScrollView
-              keyboardShouldPersistTaps="handled"
-              showsVerticalScrollIndicator={false}
-            >
-              <View style={styles.header}>
-                <Text style={styles.title}>Bon retour !</Text>
-                <Text style={styles.subtitle}>Connecte-toi pour continuer</Text>
-              </View>
-
-              <TextInput
-                label="Email"
-                placeholder="Ton adresse email"
-                value={email}
-                onChangeText={text => { setEmail(text); setError(''); }}
-                autoCapitalize="none"
-                keyboardType="email-address"
-                autoComplete="email"
-              />
-              <TextInput
-                label="Mot de passe"
-                placeholder="Ton mot de passe"
-                value={password}
-                onChangeText={text => { setPassword(text); setError(''); }}
-                secureTextEntry
-                autoComplete="password"
-              />
-
-              {error ? <Text style={styles.errorText}>{error}</Text> : null}
-
-              <TouchableOpacity
-                style={styles.forgotPasswordContainer}
-                onPress={() => navigation.navigate('ForgotPassword')}
-              >
-                <Text style={styles.forgotPasswordText}>Mot de passe oublié ?</Text>
-              </TouchableOpacity>
-
-              <Button
-                title="Se connecter"
-                onPress={handleLogin}
-                isLoading={loading}
-                style={styles.primaryButton}
-              />
-
-              <View style={styles.footerRow}>
-                <Text style={styles.footerText}>Pas encore de compte ? </Text>
-                <TouchableOpacity onPress={() => navigation.replace('Signup')}>
-                  <Text style={styles.footerLink}>S'inscrire</Text>
-                </TouchableOpacity>
-              </View>
-            </ScrollView>
-          </View>
-        </TouchableWithoutFeedback>
+    <AuthSheetLayout>
+      <View style={styles.header}>
+        <Text style={styles.title}>Bon retour !</Text>
+        <Text style={styles.subtitle}>Connecte-toi pour continuer</Text>
       </View>
-    </TouchableWithoutFeedback>
+
+      <TextInput
+        label="Email"
+        placeholder="Ton adresse email"
+        value={email}
+        onChangeText={text => { setEmail(text); setError(''); }}
+        autoCapitalize="none"
+        keyboardType="email-address"
+        autoComplete="email"
+      />
+      <TextInput
+        label="Mot de passe"
+        placeholder="Ton mot de passe"
+        value={password}
+        onChangeText={text => { setPassword(text); setError(''); }}
+        secureTextEntry
+        autoComplete="password"
+      />
+
+      {error ? <Text style={styles.errorText}>{error}</Text> : null}
+
+      <TouchableOpacity
+        style={styles.forgotPasswordContainer}
+        onPress={() => navigation.navigate('ForgotPassword')}
+      >
+        <Text style={styles.forgotPasswordText}>Mot de passe oublié ?</Text>
+      </TouchableOpacity>
+
+      <Button
+        title="Se connecter"
+        onPress={handleLogin}
+        isLoading={loading}
+        style={styles.primaryButton}
+      />
+
+      <View style={styles.footerRow}>
+        <Text style={styles.footerText}>Pas encore de compte ? </Text>
+        <TouchableOpacity onPress={() => navigation.replace('Signup')}>
+          <Text style={styles.footerLink}>S'inscrire</Text>
+        </TouchableOpacity>
+      </View>
+    </AuthSheetLayout>
   );
 };
 
 const styles = StyleSheet.create({
-  overlay: {
-    flex: 1,
-    justifyContent: 'flex-end',
-    backgroundColor: 'rgba(0, 0, 0, 0.45)',
-  },
-  sheet: {
-    backgroundColor: colors.background,
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    paddingHorizontal: 24,
-    paddingBottom: 40,
-    paddingTop: 8,
-  },
-  handle: {
-    width: 40,
-    height: 4,
-    borderRadius: 2,
-    backgroundColor: colors.border,
-    alignSelf: 'center',
-    marginBottom: 20,
-  },
   header: { marginBottom: 24 },
   title: {
     fontSize: typography.sizes.xxl,

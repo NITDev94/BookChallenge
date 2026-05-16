@@ -24,7 +24,7 @@ export const AuthNavigator = () => {
       <Stack.Group
         screenOptions={{
           presentation: 'transparentModal',
-          animation: 'slide_from_bottom',
+          animation: 'fade',
           headerShown: false,
         }}
       >

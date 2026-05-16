@@ -3,8 +3,6 @@ import {
   View,
   Text,
   StyleSheet,
-  ScrollView,
-  TouchableWithoutFeedback,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { getAuth, sendPasswordResetEmail } from '@react-native-firebase/auth';
@@ -12,6 +10,7 @@ import { Button } from '../../components/ui/Button';
 import { TextInput } from '../../components/ui/TextInput';
 import { colors } from '../../theme/colors';
 import { typography } from '../../theme/typography';
+import { AuthSheetLayout } from '../../components/auth/AuthSheetLayout';
 
 export const ForgotPasswordScreen = () => {
   const navigation = useNavigation();
@@ -48,84 +47,50 @@ export const ForgotPasswordScreen = () => {
   };
 
   return (
-    <TouchableWithoutFeedback onPress={() => navigation.goBack()}>
-      <View style={styles.overlay}>
-        <TouchableWithoutFeedback onPress={() => { }}>
-          <View style={styles.sheet}>
-            <View style={styles.handle} />
-
-            <ScrollView
-              keyboardShouldPersistTaps="handled"
-              showsVerticalScrollIndicator={false}
-            >
-              <View style={styles.header}>
-                <Text style={styles.title}>Mot de passe oublié ?</Text>
-                <Text style={styles.subtitle}>
-                  Entre ton email pour recevoir un lien de réinitialisation.
-                </Text>
-              </View>
-
-              {success ? (
-                <View style={styles.successContainer}>
-                  <Text style={styles.successText}>
-                    ✅ Email envoyé ! Vérifie ta boîte mail et suis les instructions.
-                  </Text>
-                  <Button
-                    title="Retour à la connexion"
-                    onPress={() => navigation.goBack()}
-                    style={styles.resetButton}
-                  />
-                </View>
-              ) : (
-                <>
-                  <TextInput
-                    label="Email"
-                    placeholder="Ton adresse email"
-                    value={email}
-                    onChangeText={text => { setEmail(text); setError(''); }}
-                    autoCapitalize="none"
-                    keyboardType="email-address"
-                    autoComplete="email"
-                  />
-                  {error ? <Text style={styles.errorText}>{error}</Text> : null}
-                  <Button
-                    title="Réinitialiser le mot de passe"
-                    onPress={handleReset}
-                    isLoading={loading}
-                    style={styles.resetButton}
-                  />
-                </>
-              )}
-            </ScrollView>
-          </View>
-        </TouchableWithoutFeedback>
+    <AuthSheetLayout>
+      <View style={styles.header}>
+        <Text style={styles.title}>Mot de passe oublié ?</Text>
+        <Text style={styles.subtitle}>
+          Entre ton email pour recevoir un lien de réinitialisation.
+        </Text>
       </View>
-    </TouchableWithoutFeedback>
+
+      {success ? (
+        <View style={styles.successContainer}>
+          <Text style={styles.successText}>
+            ✅ Email envoyé ! Vérifie ta boîte mail et suis les instrucciones.
+          </Text>
+          <Button
+            title="Retour à la connexion"
+            onPress={() => navigation.goBack()}
+            style={styles.resetButton}
+          />
+        </View>
+      ) : (
+        <>
+          <TextInput
+            label="Email"
+            placeholder="Ton adresse email"
+            value={email}
+            onChangeText={text => { setEmail(text); setError(''); }}
+            autoCapitalize="none"
+            keyboardType="email-address"
+            autoComplete="email"
+          />
+          {error ? <Text style={styles.errorText}>{error}</Text> : null}
+          <Button
+            title="Réinitialiser le mot de passe"
+            onPress={handleReset}
+            isLoading={loading}
+            style={styles.resetButton}
+          />
+        </>
+      )}
+    </AuthSheetLayout>
   );
 };
 
 const styles = StyleSheet.create({
-  overlay: {
-    flex: 1,
-    justifyContent: 'flex-end',
-    backgroundColor: 'rgba(0, 0, 0, 0.45)',
-  },
-  sheet: {
-    backgroundColor: colors.background,
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    paddingHorizontal: 24,
-    paddingBottom: 40,
-    paddingTop: 8,
-  },
-  handle: {
-    width: 40,
-    height: 4,
-    borderRadius: 2,
-    backgroundColor: colors.border,
-    alignSelf: 'center',
-    marginBottom: 20,
-  },
   header: { marginBottom: 24 },
   title: {
     fontSize: typography.sizes.xxl,

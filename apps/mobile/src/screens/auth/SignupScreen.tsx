@@ -4,8 +4,6 @@ import {
   Text,
   StyleSheet,
   TouchableOpacity,
-  ScrollView,
-  TouchableWithoutFeedback,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -23,6 +21,7 @@ import { TextInput } from '../../components/ui/TextInput';
 import { colors } from '../../theme/colors';
 import { typography } from '../../theme/typography';
 import { AuthStackParamList } from '../../navigation/AuthNavigator';
+import { AuthSheetLayout } from '../../components/auth/AuthSheetLayout';
 
 type NavigationProp = NativeStackNavigationProp<AuthStackParamList, 'Signup'>;
 
@@ -100,104 +99,70 @@ export const SignupScreen = () => {
   };
 
   return (
-    <TouchableWithoutFeedback onPress={() => navigation.goBack()}>
-      <View style={styles.overlay}>
-        <TouchableWithoutFeedback onPress={() => { }}>
-          <View style={styles.sheet}>
-            <View style={styles.handle} />
-
-            <ScrollView
-              keyboardShouldPersistTaps="handled"
-              showsVerticalScrollIndicator={false}
-            >
-              <View style={styles.header}>
-                <Text style={styles.title}>Créer un compte</Text>
-                <Text style={styles.subtitle}>Rejoins l'aventure de lecture</Text>
-              </View>
-
-              <TextInput
-                label="Nom d'utilisateur"
-                placeholder="Ton pseudo"
-                value={username}
-                onChangeText={text => { setUsername(text); setError(''); }}
-                autoCapitalize="words"
-              />
-              <TextInput
-                label="Email"
-                placeholder="Ton adresse email"
-                value={email}
-                onChangeText={text => { setEmail(text); setError(''); }}
-                autoCapitalize="none"
-                keyboardType="email-address"
-                autoComplete="email"
-              />
-              <TextInput
-                label="Mot de passe"
-                placeholder="Crée un mot de passe (min. 6 car.)"
-                value={password}
-                onChangeText={text => { setPassword(text); setError(''); }}
-                secureTextEntry
-                autoComplete="new-password"
-              />
-
-              {error ? <Text style={styles.errorText}>{error}</Text> : null}
-
-              <Button
-                title="S'inscrire"
-                onPress={handleSignup}
-                isLoading={loading}
-                style={styles.primaryButton}
-              />
-
-              <View style={styles.dividerContainer}>
-                <View style={styles.divider} />
-                <Text style={styles.dividerText}>ou</Text>
-                <View style={styles.divider} />
-              </View>
-
-              <Button
-                title="Se connecter avec réseaux"
-                variant="secondary"
-                onPress={() => { }}
-                style={styles.socialButton}
-              />
-
-              <View style={styles.footerRow}>
-                <Text style={styles.footerText}>Déjà un compte ? </Text>
-                <TouchableOpacity onPress={() => navigation.replace('Login')}>
-                  <Text style={styles.footerLink}>Se connecter</Text>
-                </TouchableOpacity>
-              </View>
-            </ScrollView>
-          </View>
-        </TouchableWithoutFeedback>
+    <AuthSheetLayout>
+      <View style={styles.header}>
+        <Text style={styles.title}>Créer un compte</Text>
+        <Text style={styles.subtitle}>Rejoins l'aventure de lecture</Text>
       </View>
-    </TouchableWithoutFeedback>
+
+      <TextInput
+        label="Nom d'utilisateur"
+        placeholder="Ton pseudo"
+        value={username}
+        onChangeText={text => { setUsername(text); setError(''); }}
+        autoCapitalize="words"
+      />
+      <TextInput
+        label="Email"
+        placeholder="Ton adresse email"
+        value={email}
+        onChangeText={text => { setEmail(text); setError(''); }}
+        autoCapitalize="none"
+        keyboardType="email-address"
+        autoComplete="email"
+      />
+      <TextInput
+        label="Mot de passe"
+        placeholder="Crée un mot de passe (min. 6 car.)"
+        value={password}
+        onChangeText={text => { setPassword(text); setError(''); }}
+        secureTextEntry
+        autoComplete="new-password"
+      />
+
+      {error ? <Text style={styles.errorText}>{error}</Text> : null}
+
+      <Button
+        title="S'inscrire"
+        onPress={handleSignup}
+        isLoading={loading}
+        style={styles.primaryButton}
+      />
+
+      <View style={styles.dividerContainer}>
+        <View style={styles.divider} />
+        <Text style={styles.dividerText}>ou</Text>
+        <View style={styles.divider} />
+      </View>
+
+      <Button
+        title="Se connecter avec réseaux"
+        variant="secondary"
+        onPress={() => { }}
+        style={styles.socialButton}
+      />
+
+      <View style={styles.footerRow}>
+        <Text style={styles.footerText}>Déjà un compte ? </Text>
+        <TouchableOpacity onPress={() => navigation.replace('Login')}>
+          <Text style={styles.footerLink}>Se connecter</Text>
+        </TouchableOpacity>
+      </View>
+    </AuthSheetLayout>
   );
 };
 
 const styles = StyleSheet.create({
-  overlay: {
-    flex: 1,
-    justifyContent: 'flex-end',
-    backgroundColor: 'rgba(0, 0, 0, 0.45)',
-  },
-  sheet: {
-    backgroundColor: colors.background,
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    paddingHorizontal: 24,
-    paddingBottom: 40,
-    paddingTop: 8,
-  },
-  handle: {
-    width: 40,
-    height: 4,
-    borderRadius: 2,
-    backgroundColor: colors.border,
-    alignSelf: 'center',
-    marginBottom: 20,
-  },
   header: { marginBottom: 24 },
   title: {
     fontSize: typography.sizes.xxl,
