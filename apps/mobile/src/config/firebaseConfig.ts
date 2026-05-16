@@ -1,69 +1,86 @@
+import { Platform, NativeModules } from 'react-native';
+import DeviceInfo from 'react-native-device-info';
 import { getAuth, connectAuthEmulator } from '@react-native-firebase/auth';
 import { getFirestore, connectFirestoreEmulator } from '@react-native-firebase/firestore';
 import { getFunctions, connectFunctionsEmulator } from '@react-native-firebase/functions';
 import { getStorage, connectStorageEmulator } from '@react-native-firebase/storage';
-import { Platform, NativeModules } from 'react-native';
-import DeviceInfo from 'react-native-device-info';
-import { USE_FIREBASE_EMULATOR } from './firebaseEnv';
+import { DEV_MACHINE_IP, USE_FIREBASE_EMULATOR } from '@env';
 
 /**
- * Get the IP address of the machine running the metro server.
- * This is used to connect to the emulators from a real device.
+ * Parses the machine IP address from the Metro bundler script URL.
+ * Falls back to 'localhost' if the script URL is not available.
+ * 
+ * @returns {string} The bundler's hostname or IP address.
  */
-const getMachineIp = () => {
+const getBundlerHost = (): string => {
   const scriptURL = NativeModules.SourceCode.scriptURL;
   if (!scriptURL) return 'localhost';
-  const address = scriptURL.split('://')[1].split('/')[0];
-  const hostname = address.split(':')[0];
-  return hostname;
+  
+  try {
+    const address = scriptURL.split('://')[1].split('/')[0];
+    const hostname = address.split(':')[0];
+    return hostname;
+  } catch (e) {
+    return 'localhost';
+  }
 };
 
 /**
- * Get the emulator host based on the environment.
- * - Android Emulator: 10.0.2.2
- * - iOS Simulator: localhost
- * - Real Device: IP of the machine running Metro
+ * Determines the correct host for Firebase Emulators based on the current environment.
+ * Handles Android emulator, iOS simulator, and physical devices via Hotspot or local network.
+ * 
+ * @returns {Promise<string>} The IP or hostname to connect to.
  */
-const getEmulatorHost = async () => {
+const getEmulatorHost = async (): Promise<string> => {
     const isEmulator = await DeviceInfo.isEmulator();
     
     if (Platform.OS === 'android') {
-        // Android Emulator uses 10.0.2.2 to access host localhost
+        // Android Emulator uses 10.0.2.2 to access the machine's localhost
         return '10.0.2.2';
     }
 
     if (isEmulator) {
-        // iOS Simulator
+        // iOS Simulator uses localhost
         return 'localhost';
     }
 
-    // Real Device (iOS or Android)
-    return getMachineIp();
+    const detectedIp = getBundlerHost();
+    
+    // If on a real device and the detected IP is a loopback or unavailable,
+    // we use the configured IP from the .env file as a fallback.
+    if (detectedIp === 'localhost' || detectedIp === '127.0.0.1' || !detectedIp) {
+        return DEV_MACHINE_IP || 'localhost'; 
+    }
+
+    return detectedIp;
 };
 
+/**
+ * Initializes Firebase services and connects them to local emulators if enabled.
+ * Logging is provided to verify connectivity on physical devices.
+ */
 export const initializeFirebase = async () => {
-  if (USE_FIREBASE_EMULATOR) {
+  if (USE_FIREBASE_EMULATOR === 'true') {
     try {
       const emulatorHost = await getEmulatorHost();
-      console.log(`🔌 Connecting to Firebase Emulators at ${emulatorHost}`);
+      
+      console.log(`🔌 FIREBASE: Connecting to emulators at ${emulatorHost}`);
 
-      // Auth Emulator
+      // Auth Emulator (Port 9099)
       connectAuthEmulator(getAuth(), `http://${emulatorHost}:9099`);
 
-      // Firestore Emulator
+      // Firestore Emulator (Port 8080)
       connectFirestoreEmulator(getFirestore(), emulatorHost, 8080);
-      
-      // Functions Emulator
+
+      // Functions Emulator (Port 5001)
       connectFunctionsEmulator(getFunctions(), emulatorHost, 5001);
 
-      // Storage Emulator
+      // Storage Emulator (Port 9199)
       connectStorageEmulator(getStorage(), emulatorHost, 9199);
-      
-      console.log('✅ Connected to Native Firebase Emulators (Modular)');
+
+      console.log('✅ FIREBASE: Successfully connected to emulators');
     } catch (error) {
-      console.error('❌ Failed to connect to Firebase Emulators:', error);
+      console.error('❌ FIREBASE: Emulator connection failed:', error);
     }
-  } else {
-      console.log('🚀 Running with production Firebase');
   }
 };
