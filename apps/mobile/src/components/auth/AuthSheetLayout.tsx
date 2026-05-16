@@ -17,17 +17,29 @@ const SCREEN_HEIGHT = Dimensions.get('window').height;
 
 interface AuthSheetLayoutProps {
   children: React.ReactNode;
+  /** Offset used to adjust the layout when the keyboard is visible */
   keyboardOffset?: number;
 }
 
+/**
+ * A reusable layout component for authentication screens that provides
+ * a "Bottom Sheet" appearance with native-like gestures and animations.
+ * 
+ * Features:
+ * - Entrance animation (slide up)
+ * - Backdrop with fade-in effect
+ * - Slide-to-dismiss gesture using PanResponder
+ * - Keyboard avoidance
+ * - Tap backdrop to close
+ */
 export const AuthSheetLayout: React.FC<AuthSheetLayoutProps> = ({ 
   children, 
   keyboardOffset = 0 
 }) => {
   const navigation = useNavigation();
-  const panY = useRef(new Animated.Value(SCREEN_HEIGHT)).current; // Empezamos abajo del todo
+  const panY = useRef(new Animated.Value(SCREEN_HEIGHT)).current; // Starts off-screen at the bottom
 
-  // animation of entry, and exit when slide down
+  // Handle entry animation on mount
   useEffect(() => {
     Animated.spring(panY, {
       toValue: 0,
@@ -37,6 +49,9 @@ export const AuthSheetLayout: React.FC<AuthSheetLayoutProps> = ({
     }).start();
   }, [panY]);
 
+  /**
+   * Animates the sheet downwards and navigates back.
+   */
   const handleClose = () => {
     Animated.timing(panY, {
       toValue: SCREEN_HEIGHT,
@@ -45,21 +60,29 @@ export const AuthSheetLayout: React.FC<AuthSheetLayoutProps> = ({
     }).start(() => navigation.goBack());
   };
 
+  /**
+   * Configures the PanResponder to handle the slide-to-dismiss gesture.
+   * Only triggers if the vertical movement is downwards.
+   */
   const panResponder = useRef(
     PanResponder.create({
       onStartShouldSetPanResponder: () => true,
       onMoveShouldSetPanResponder: (_, gestureState) => {
+        // Trigger only on downward movement
         return gestureState.dy > 5;
       },
       onPanResponderMove: (_, gestureState) => {
+        // Track the gesture movement if sliding down
         if (gestureState.dy > 0) {
           panY.setValue(gestureState.dy);
         }
       },
       onPanResponderRelease: (_, gestureState) => {
+        // Dismiss if the swipe distance is significant
         if (gestureState.dy > 120) {
           handleClose();
         } else {
+          // Snap back to initial position if swipe was not long enough
           Animated.spring(panY, {
             toValue: 0,
             useNativeDriver: true,
@@ -84,7 +107,7 @@ export const AuthSheetLayout: React.FC<AuthSheetLayoutProps> = ({
                 { transform: [{ translateY: panY }] }
               ]}
             >
-              {/* drag handle area */}
+              {/* Invisible touch area to facilitate grabbing the sheet */}
               <View {...panResponder.panHandlers} style={styles.dragHandleArea}>
                 <View style={styles.handle} />
               </View>
