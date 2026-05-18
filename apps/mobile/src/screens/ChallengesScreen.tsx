@@ -18,6 +18,8 @@ import { ChallengeProgressCard } from '../components/challenges/ChallengeProgres
 import { RewardUnlockCard } from '../components/challenges/RewardUnlockCard';
 import { commonStyles } from '../theme';
 import { CreateCustomChallengeInput } from '../types/challenges';
+import { LanguagePicker } from '../components/ui/LanguagePicker';
+import { CategoryPicker } from '../components/ui/CategoryPicker';
 
 const GOAL_OPTIONS: Array<{ value: CreateCustomChallengeInput['goalKind']; label: string }> = [
   { value: 'books_completed', label: 'Livres terminés' },
@@ -48,7 +50,7 @@ export const ChallengesScreen = () => {
   const [description, setDescription] = useState('');
   const [target, setTarget] = useState('1');
   const [language, setLanguage] = useState('');
-  const [categoriesInput, setCategoriesInput] = useState('');
+  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [durationDaysInput, setDurationDaysInput] = useState('30');
   const [createError, setCreateError] = useState<string | null>(null);
   const [createSuccess, setCreateSuccess] = useState<string | null>(null);
@@ -79,10 +81,7 @@ export const ChallengesScreen = () => {
       return;
     }
 
-    const categoriesAny = categoriesInput
-      .split(',')
-      .map((entry) => entry.trim().toLowerCase())
-      .filter((entry) => entry.length > 0);
+    const categoriesAny = selectedCategories.map((key) => key.toLowerCase());
 
     const created = await createChallenge({
       title,
@@ -104,7 +103,7 @@ export const ChallengesScreen = () => {
     setDescription('');
     setTarget('1');
     setLanguage('');
-    setCategoriesInput('');
+    setSelectedCategories([]);
     setDurationDaysInput('30');
     setGoalKind('books_completed');
     setIsCreateFormOpen(false);
@@ -186,24 +185,16 @@ export const ChallengesScreen = () => {
 
               {supportsBookFilters && (
                 <>
-                  <Text style={styles.inputLabel}>Langue (optionnel)</Text>
-                  <TextInput
-                    value={language}
-                    onChangeText={setLanguage}
-                    placeholder="ex: en, fr"
-                    placeholderTextColor="#a8a29e"
-                    autoCapitalize="none"
-                    style={styles.input}
+                  <LanguagePicker
+                    selectedCode={language || null}
+                    onSelect={(code) => setLanguage(code ?? '')}
+                    label="Langue (optionnel)"
                   />
 
-                  <Text style={styles.inputLabel}>Catégories (optionnel, séparées par des virgules)</Text>
-                  <TextInput
-                    value={categoriesInput}
-                    onChangeText={setCategoriesInput}
-                    placeholder="history, art"
-                    placeholderTextColor="#a8a29e"
-                    autoCapitalize="none"
-                    style={styles.input}
+                  <CategoryPicker
+                    selectedKeys={selectedCategories}
+                    onSelect={(keys) => setSelectedCategories(keys)}
+                    label="Catégories (optionnel)"
                   />
                 </>
               )}

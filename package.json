@@ -19,6 +19,7 @@
     "start:emulators": "yarn switch:emulator && yarn mobile start",
     "start:cloud": "yarn switch:cloud && yarn mobile start",
     "dev:all": "yarn switch:emulator && (yarn emulators & yarn mobile start)",
+    "dev:device": "yarn switch:emulator && (yarn emulators & yarn mobile start --host 0.0.0.0)",
     "pods": "cd apps/mobile/ios && pod install",
     "functions": "yarn workspace functions",
     "functions:build": "yarn functions build",

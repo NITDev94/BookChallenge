@@ -25,6 +25,7 @@ firebase/functions/lib/
 .DS_Store
 .AppleDouble
 .LSOverride
+RUN_ON_DEVICE.md
 
 # ─── Ruby / Bundler ───────────────────────────────────────────────────────────
 .bundle/
@@ -39,6 +40,9 @@ vendor/bundle/
 *.local
 *.log
 .expo/
+
+# ─── CodeGraph ────────────────────────────────────────────────────────────────
+.codegraph/
 
 # ─── Env files ────────────────────────────────────────────────────────────────
 .env
